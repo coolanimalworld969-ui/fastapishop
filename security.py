@@ -10,8 +10,8 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
 
-from database import SessionDep
-from models import UsersOrm
+from fastapishop.database import SessionDep
+from fastapishop.models import UsersOrm
 
 from authx import AuthX, AuthXConfig
 

@@ -23,6 +23,14 @@ class ProductResponse(BaseModel):
         from_attributes=True
     )
 
+class ProductOrderResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
 class ProductUpdate(BaseModel):
     category_id: int | None = None
     name: str | None = None

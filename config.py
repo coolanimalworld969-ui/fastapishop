@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 
-load_dotenv()
+loaded = load_dotenv()
 
 class DB_CONFIG:
 

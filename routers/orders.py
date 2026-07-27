@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from fastapishop.database import SessionDep
-from fastapishop.models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm
+from fastapishop.models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm, CategoryOrm
+from fastapishop.schemas import ProductResponse
 from fastapishop.schemas.orders import OrderResponse, OrderCreate
-from fastapishop.security import get_current_user
+from fastapishop.security import get_current_user, get_current_admin
 
 router = APIRouter(
     prefix="/orders",
@@ -17,6 +19,7 @@ async def get_my_orders(sess: SessionDep, user: UsersOrm = Depends(get_current_u
         select(OrderOrm)
         .where(OrderOrm.user_id == user.id)
         .order_by(OrderOrm.created_at)
+        .options(selectinload(OrderOrm.order_items).selectinload(OrderItemOrm.product).selectinload(ProductOrm.category))
     )
 
     result = await sess.execute(query)
@@ -53,8 +56,8 @@ async def create_order(order_data: OrderCreate, sess: SessionDep, user: UsersOrm
 
     for order_item in order_data.order_items:
         product = products_dict[order_item.product_id]
-        if product.stock < order_item.quantity:
-            raise HTTPException(status_code=409, detail="Stock less than quantity products in order")
+        # if product.stock < order_item.quantity:
+        #     raise HTTPException(status_code=409, detail="Stock less than quantity products in order")
         product.stock -= order_item.quantity
 
         new_order_item = OrderItemOrm(
@@ -93,3 +96,20 @@ async def delete_order(order_id: int, sess: SessionDep, user: UsersOrm = Depends
     await sess.commit()
 
     return {"message":f"Order {order_id} deleted"}
+
+@router.get("/{order_id}")
+async def get_order(order_id: int, sess: SessionDep, admin: UsersOrm = Depends(get_current_admin)):
+    query = (
+        select(OrderOrm)
+        .where(OrderOrm.id == order_id)
+        .options(selectinload(OrderOrm.order_items).selectinload(OrderItemOrm.product))
+    )
+
+    res = await sess.execute(query)
+
+    order = res.scalar_one_or_none()
+
+    if order is None:
+        raise HTTPException(status_code=404, detail={"message":"Order not found"})
+
+    return OrderResponse.model_validate(order)
