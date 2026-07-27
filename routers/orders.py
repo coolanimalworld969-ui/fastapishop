@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from fastapishop.database import SessionDep
 from fastapishop.models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm, CategoryOrm
 from fastapishop.schemas import ProductResponse
-from fastapishop.schemas.orders import OrderResponse, OrderCreate
+from fastapishop.schemas.orders import OrderResponse, OrderCreate, OrderStatusUpdate
 from fastapishop.security import get_current_user, get_current_admin
 
 router = APIRouter(
@@ -74,6 +74,27 @@ async def create_order(order_data: OrderCreate, sess: SessionDep, user: UsersOrm
     order_response = OrderResponse.model_validate(new_order)
 
     return order_response
+
+@router.patch("/{order_id}/status")
+async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess: SessionDep, admin: UsersOrm = Depends(get_current_admin)):
+    query = (
+        select(OrderOrm)
+        .where(OrderOrm.id == order_id)
+    )
+
+    res = await sess.execute(query)
+
+    order: OrderOrm = res.scalar_one_or_none()
+
+    if order is None:
+        raise HTTPException(status_code=404, detail={"message": "Order not found"})
+
+    order.status = order_data.status
+
+    await sess.commit()
+
+    return OrderResponse.model_validate(order)
+
 
 @router.delete("/{order_id}")
 async def delete_order(order_id: int, sess: SessionDep, user: UsersOrm = Depends(get_current_user)):
