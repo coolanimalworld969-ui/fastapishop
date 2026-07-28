@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from fastapishop.database import SessionDep
-from fastapishop.models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm, CategoryOrm
+from fastapishop.models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm, CategoryOrm, OrderStatus
 from fastapishop.schemas import ProductResponse
 from fastapishop.schemas.orders import OrderResponse, OrderCreate, OrderStatusUpdate
 from fastapishop.security import get_current_user, get_current_admin
@@ -56,10 +56,6 @@ async def create_order(order_data: OrderCreate, sess: SessionDep, user: UsersOrm
 
     for order_item in order_data.order_items:
         product = products_dict[order_item.product_id]
-        # if product.stock < order_item.quantity:
-        #     raise HTTPException(status_code=409, detail="Stock less than quantity products in order")
-        product.stock -= order_item.quantity
-
         new_order_item = OrderItemOrm(
             product=product,
             quantity=order_item.quantity,
@@ -75,11 +71,18 @@ async def create_order(order_data: OrderCreate, sess: SessionDep, user: UsersOrm
 
     return order_response
 
+allowed_transactions = {
+        OrderStatus.PENDING: {OrderStatus.COMPLETED, OrderStatus.CANCELLED},
+        OrderStatus.CANCELLED: {},
+        OrderStatus.COMPLETED: {}
+}
+
 @router.patch("/{order_id}/status")
 async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess: SessionDep, admin: UsersOrm = Depends(get_current_admin)):
     query = (
         select(OrderOrm)
         .where(OrderOrm.id == order_id)
+        .options(selectinload(OrderOrm.order_items).selectinload(OrderItemOrm.product))
     )
 
     res = await sess.execute(query)
@@ -89,10 +92,26 @@ async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess
     if order is None:
         raise HTTPException(status_code=404, detail={"message": "Order not found"})
 
-    order.status = order_data.status
+    if order_data.status == order.status:
+        raise HTTPException(status_code=400, detail={"message":f"Status order already {order.status}"})
+
+    if order_data.status not in allowed_transactions[order.status]:
+        raise HTTPException(status_code=409, detail={"message":f"Error, can't change {order.status} -> {order_data.status}"})
+
+    if order_data.status != OrderStatus.COMPLETED:
+        order.status = order_data.status
+    else:
+        for order_item in order.order_items:
+            prod = order_item.product
+
+            if prod.stock < order_item.quantity:
+                raise HTTPException(status_code=409, detail={"message":f"Not enough stock for product '{prod.name}'"})
+
+            prod.stock -= order_item.quantity
+
+        order.status = order_data.status
 
     await sess.commit()
-
     return OrderResponse.model_validate(order)
 
 

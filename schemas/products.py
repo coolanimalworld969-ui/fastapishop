@@ -26,6 +26,7 @@ class ProductResponse(BaseModel):
 class ProductOrderResponse(BaseModel):
     id: int
     name: str
+    stock: int
 
     model_config = ConfigDict(
         from_attributes=True
