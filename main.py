@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from fastapishop.routers import auth, users, categories, products, orders
+from fastapishop.routers import auth, users, categories, products, orders, analytics
 
 app = FastAPI(
     swagger_ui_parameters={
@@ -13,3 +13,4 @@ app.include_router(users.router)
 app.include_router(categories.router)
 app.include_router(products.router)
 app.include_router(orders.router)
+app.include_router(analytics.router)

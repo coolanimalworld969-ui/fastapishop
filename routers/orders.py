@@ -111,6 +111,7 @@ async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess
 
         order.status = order_data.status
 
+
     await sess.commit()
     return OrderResponse.model_validate(order)
 

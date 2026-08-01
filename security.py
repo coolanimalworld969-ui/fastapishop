@@ -17,7 +17,6 @@ from authx import AuthX, AuthXConfig
 
 load_dotenv()
 
-
 password_hash = PasswordHash.recommended()
 
 SECRET_KEY=os.getenv("SECRET_KEY")
