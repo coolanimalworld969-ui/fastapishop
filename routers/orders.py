@@ -35,6 +35,9 @@ async def create_order(order_data: OrderCreate, sess: SessionDep, user: UsersOrm
     product_ids = [order_item.product_id for order_item in order_data.order_items]
     requested_ids = set(product_ids)
 
+    if len(product_ids) != len(requested_ids):
+        raise HTTPException(status_code=400,detail={"message":"Duplicate order-items in request"})
+
     query = (
         select(ProductOrm)
         .where(ProductOrm.id.in_(product_ids))
@@ -55,13 +58,15 @@ async def create_order(order_data: OrderCreate, sess: SessionDep, user: UsersOrm
     )
 
     for order_item in order_data.order_items:
-        product = products_dict[order_item.product_id]
+        product: ProductOrm = products_dict[order_item.product_id]
         new_order_item = OrderItemOrm(
             product=product,
             quantity=order_item.quantity,
             price=product.price
         )
-
+        if product.stock < order_item.quantity:
+            raise HTTPException(status_code=409, detail={"message":"Not enough products in stock"})
+        product.stock -= order_item.quantity
         new_order.order_items.append(new_order_item)
 
     sess.add(new_order)
@@ -98,9 +103,7 @@ async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess
     if order_data.status not in allowed_transactions[order.status]:
         raise HTTPException(status_code=409, detail={"message":f"Error, can't change {order.status} -> {order_data.status}"})
 
-    if order_data.status != OrderStatus.COMPLETED:
-        order.status = order_data.status
-    else:
+    if order_data.status == OrderStatus.COMPLETED:
         for order_item in order.order_items:
             prod = order_item.product
 
@@ -108,8 +111,13 @@ async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess
                 raise HTTPException(status_code=409, detail={"message":f"Not enough stock for product '{prod.name}'"})
 
             prod.stock -= order_item.quantity
+    elif order_data.status == OrderStatus.CANCELLED:
+        for order_item in order.order_items:
+            prod = order_item.product
 
-        order.status = order_data.status
+            prod.stock += order_item.quantity
+
+    order.status = order_data.status
 
 
     await sess.commit()
