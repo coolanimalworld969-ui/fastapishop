@@ -1,5 +1,4 @@
 import os
-from urllib.parse import uses_relative
 
 import jwt
 from dotenv import load_dotenv
@@ -10,10 +9,8 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
 
-from fastapishop.database import SessionDep
-from fastapishop.models import UsersOrm
-
-from authx import AuthX, AuthXConfig
+from database import SessionDep
+from models import UsersOrm
 
 load_dotenv()
 

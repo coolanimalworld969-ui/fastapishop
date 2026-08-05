@@ -1,8 +1,8 @@
 from fastapi import APIRouter
-from fastapishop.database import SessionDep
-from fastapishop.models import UsersOrm
-from fastapishop.security import get_current_user, password_hash, get_current_admin
-from fastapishop.schemas import *
+from database import SessionDep
+from models import UsersOrm
+from security import get_current_user, password_hash, get_current_admin
+from schemas import *
 from fastapi import Depends
 from sqlalchemy import select
 from fastapi.responses import JSONResponse
@@ -12,6 +12,30 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"]
 )
+@router.post("/admin")
+async def create_admin(sess: SessionDep):
+
+    query = (
+        select(UsersOrm)
+        .where(UsersOrm.username == "admin")
+    )
+
+    get_admin = await sess.execute(query)
+    result = get_admin.scalars().one_or_none()
+
+    if result is not None:
+        raise HTTPException(status_code=400, detail={"message":"Admin already exists"})
+
+    admin = UsersOrm()
+    admin.hashed_password = password_hash.hash("admin")
+    admin.username = "admin"
+    admin.email = "123@yandex.ru"
+    admin.age = 20
+    admin.is_admin = True
+    sess.add(admin)
+    await sess.commit()
+
+    return {"message":"Admin created"}
 
 @router.get("/me")
 async def get_me(current_user: UsersOrm = Depends(get_current_user)):

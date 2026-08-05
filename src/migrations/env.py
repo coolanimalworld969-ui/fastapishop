@@ -5,8 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
-from fastapishop.config import DB_SETTINGS
-from fastapishop.database import Base
+from config import DB_SETTINGS
+from models import *
 
 config = context.config
 

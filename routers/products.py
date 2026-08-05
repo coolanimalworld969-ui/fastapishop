@@ -2,11 +2,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import joinedload
 
-from fastapishop.database import SessionDep
-from fastapishop.models import CategoryOrm, UsersOrm, ProductOrm
-from fastapishop.schemas import ProductCreate, ProductResponse, ProductUpdate
+from database import SessionDep
+from models import CategoryOrm, UsersOrm, ProductOrm
+from schemas import ProductCreate, ProductResponse, ProductUpdate
 from sqlalchemy import select
-from fastapishop.security import get_current_admin
+from security import get_current_admin
 
 
 router = APIRouter(

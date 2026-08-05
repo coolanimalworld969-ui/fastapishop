@@ -5,10 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from starlette.responses import JSONResponse
 
-from fastapishop.schemas import CategoryResponse, CategoryCreate, CategoryUpdate
-from fastapishop.database import SessionDep
-from fastapishop.models import CategoryOrm, UsersOrm
-from fastapishop.security import get_current_admin
+from schemas import CategoryResponse, CategoryCreate, CategoryUpdate
+from database import SessionDep
+from models import CategoryOrm, UsersOrm
+from security import get_current_admin
 
 router = APIRouter(
     prefix="/categories",

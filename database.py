@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi.params import Depends
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-from fastapishop.config import *
+from config import *
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.ext.asyncio.session import Session

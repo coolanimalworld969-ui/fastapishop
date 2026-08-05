@@ -1,9 +1,9 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import HTTPException, Depends, APIRouter
-from fastapishop.models import UsersOrm
-from fastapishop.database import SessionDep
-from fastapishop.schemas import TokenResponse
-from fastapishop.security import password_hash, create_access_token
+from models import UsersOrm
+from database import SessionDep
+from schemas import TokenResponse
+from security import password_hash, create_access_token
 from sqlalchemy import select
 
 router = APIRouter(

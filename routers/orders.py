@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from fastapishop.database import SessionDep
-from fastapishop.models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm, CategoryOrm, OrderStatus
-from fastapishop.schemas import ProductResponse
-from fastapishop.schemas.orders import OrderResponse, OrderCreate, OrderStatusUpdate
-from fastapishop.security import get_current_user, get_current_admin
+from database import SessionDep
+from models import UsersOrm, OrderOrm, OrderItemOrm, ProductOrm, OrderStatus
+from schemas.orders import OrderResponse, OrderCreate, OrderStatusUpdate
+from security import get_current_user, get_current_admin
 
 router = APIRouter(
     prefix="/orders",
@@ -109,8 +108,6 @@ async def update_order_status(order_id: int, order_data: OrderStatusUpdate, sess
 
             if prod.stock < order_item.quantity:
                 raise HTTPException(status_code=409, detail={"message":f"Not enough stock for product '{prod.name}'"})
-
-            prod.stock -= order_item.quantity
     elif order_data.status == OrderStatus.CANCELLED:
         for order_item in order.order_items:
             prod = order_item.product

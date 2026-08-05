@@ -2,11 +2,11 @@ from datetime import datetime
 
 from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from fastapishop.database import Base
+from database import Base
 from enum import Enum
 from decimal import Decimal
 
-from fastapishop.models import ProductOrm, UsersOrm
+from models import ProductOrm, UsersOrm
 
 
 class OrderStatus(str, Enum):

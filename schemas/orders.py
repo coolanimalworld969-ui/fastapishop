@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict, Field
-from fastapishop.models import OrderStatus
+from models import OrderStatus
 from decimal import Decimal
 
-from fastapishop.schemas import ProductOrderResponse, ProductResponse
+from schemas import ProductOrderResponse
 
 
 class OrderResponse(BaseModel):

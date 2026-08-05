@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy import ForeignKey, Numeric, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from fastapishop.database import Base
-from fastapishop.models import CategoryOrm
+from database import Base
+from models import CategoryOrm
 
 
 class ProductOrm(Base):

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from fastapishop.database import Base
+from database import Base
 from datetime import datetime
 from sqlalchemy import DateTime, func
 
